@@ -2,232 +2,689 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#fff7f9" />
-
-  <title>Hi Bae.</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0d0508" />
+  <title>One Message</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@500;600&display=swap"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 
   <style>
     * {
       box-sizing: border-box;
-    }
-
-    :root {
-      font-family: "DM Sans", system-ui, sans-serif;
-      color: #251d20;
-      background: #fff7f9;
-    }
-
-    html,
-    body {
       margin: 0;
-      min-height: 100%;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
+      background-color: #0d0508;
+      color: #e2d7db;
+      font-family: 'DM Sans', sans-serif;
       min-height: 100vh;
-      overflow: hidden;
-      background:
-        radial-gradient(
-          circle at 20% 15%,
-          rgba(255, 205, 219, 0.55),
-          transparent 28%
-        ),
-        radial-gradient(
-          circle at 85% 80%,
-          rgba(239, 215, 255, 0.5),
-          transparent 30%
-        ),
-        #fff7f9;
-    }
-
-    .page {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-    }
-
-    .card {
-      width: min(92vw, 520px);
-      min-height: 620px;
-      padding: 34px 30px 26px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      text-align: center;
-      border: 1px solid rgba(60, 35, 43, 0.08);
-      border-radius: 28px;
-      background: rgba(255, 255, 255, 0.72);
-      box-shadow: 0 25px 80px rgba(74, 37, 49, 0.12);
-      backdrop-filter: blur(18px);
-      animation: appear 0.8s ease both;
-    }
-
-    .eyebrow,
-    .footer {
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #9a7e87;
-    }
-
-    .content {
       display: flex;
       flex-direction: column;
       align-items: center;
-      transform: translateY(-15px);
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
     }
 
-    h1 {
-      margin: 0 0 18px;
-      font-family: "Playfair Display", Georgia, serif;
-      font-size: clamp(42px, 10vw, 66px);
-      font-weight: 600;
-      line-height: 1;
+    /* Ambient Glow Background */
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 50% 20%, rgba(180, 30, 60, 0.15), transparent 60%),
+        radial-gradient(circle at 50% 80%, rgba(120, 20, 45, 0.2), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
     }
 
-    .message {
-      max-width: 360px;
-      margin: 0 auto 30px;
+    /* Background Floating Particles Canvas */
+    #particleCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .screen {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 420px;
+      padding: 30px 24px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      animation: fadeIn 0.6s ease forwards;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Common Typography & Badges */
+    .badge {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #e63956;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 28px;
+      font-weight: 500;
+    }
+
+    .dot-pulse {
+      width: 6px;
+      height: 6px;
+      background-color: #e63956;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #e63956;
+    }
+
+    h1.title {
+      font-family: 'Playfair Display', serif;
+      font-size: 48px;
+      font-weight: 400;
+      color: #ffffff;
+      margin-bottom: 16px;
+    }
+
+    p.subtitle {
       font-size: 17px;
-      line-height: 1.65;
-      color: #6e5961;
+      color: #a89ba0;
+      line-height: 1.5;
+      margin-bottom: 36px;
     }
 
-    #name {
-      color: #2c2024;
-      font-weight: 600;
-    }
-
-    button {
-      border: 0;
-      border-radius: 999px;
-      padding: 13px 27px;
-      font: inherit;
-      font-weight: 600;
-      color: white;
-      background: #2d2226;
+    /* Primary Action Buttons */
+    .btn-pink {
+      background: #e63956;
+      color: #ffffff;
+      border: none;
+      padding: 14px 38px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 500;
       cursor: pointer;
-      box-shadow: 0 10px 25px rgba(45, 34, 38, 0.18);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 8px 25px rgba(230, 57, 86, 0.35);
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 30px rgba(45, 34, 38, 0.23);
+    .btn-pink:active {
+      transform: scale(0.96);
     }
 
-    button:active {
-      transform: translateY(0);
+    /* Screen 2: Star Tracing Stage */
+    .stage-header {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: #8c7b82;
+      margin-bottom: 12px;
     }
 
-    .reveal {
-      max-height: 0;
-      opacity: 0;
+    .stage-dots {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 30px;
+    }
+
+    .stage-dot {
+      width: 14px;
+      height: 4px;
+      background: #2a1e22;
+      border-radius: 2px;
+    }
+
+    .stage-dot.active {
+      background: #e63956;
+      box-shadow: 0 0 8px #e63956;
+    }
+
+    .star-canvas-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 10px 0;
+    }
+
+    #starCanvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .hint-text {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 16px;
+      color: #a89ba0;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    /* Screen 3: Scratch Card */
+    .scratch-container {
+      position: relative;
+      width: 310px;
+      height: 200px;
+      border-radius: 16px;
       overflow: hidden;
-      transition: max-height 0.65s ease, opacity 0.45s ease, margin-top 0.45s ease;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin: 20px 0;
     }
 
-    .reveal.show {
-      max-height: 180px;
-      opacity: 1;
-      margin-top: 28px;
+    .scratch-reveal-content {
+      position: absolute;
+      inset: 0;
+      background: #180b10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
     }
 
-    .heart {
-      margin: 0 0 8px;
-      font-size: 34px;
-      animation: pulse 1.3s ease infinite;
+    .scratch-reveal-content h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: #ffffff;
+      margin-bottom: 8px;
     }
 
-    .secret {
-      margin: 0;
-      max-width: 330px;
-      font-family: "Playfair Display", Georgia, serif;
+    .scratch-reveal-content p {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: #e63956;
+    }
+
+    #scratchCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    /* Screen 4: Romantic Letter */
+    .letter-container {
+      text-align: center;
+      width: 100%;
+    }
+
+    .letter-body {
+      font-size: 15px;
+      color: #c9bcbe;
+      line-height: 1.8;
+      margin-bottom: 24px;
+    }
+
+    .letter-body p {
+      margin-bottom: 16px;
+    }
+
+    .question-prompt {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 24px;
+      color: #ffb8c6;
+      margin: 28px 0;
+    }
+
+    .signature {
+      font-family: 'Playfair Display', serif;
       font-size: 20px;
-      line-height: 1.45;
+      color: #ffffff;
+      margin-bottom: 36px;
     }
 
-    @keyframes appear {
-      from {
-        opacity: 0;
-        transform: translateY(16px) scale(0.98);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
+    .choice-note {
+      font-size: 12px;
+      color: #6e5e64;
+      margin-bottom: 20px;
     }
 
-    @keyframes pulse {
-      50% {
-        transform: scale(1.12);
-      }
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
     }
 
-    @media (max-width: 520px) {
-      .card {
-        min-height: 560px;
-        padding: 26px 22px 22px;
-        border-radius: 24px;
-      }
+    .btn-no {
+      background: #1c1215;
+      color: #8c7b82;
+      border: 1px solid #332227;
+      padding: 14px 32px;
+      border-radius: 30px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* Confetti Canvas */
+    #confettiCanvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
     }
   </style>
 </head>
-
 <body>
 
-  <main class="page">
-    <section class="card">
+  <div class="bg-glow"></div>
+  <canvas id="particleCanvas"></canvas>
+  <canvas id="confettiCanvas"></canvas>
 
-      <div class="eyebrow">
-        One message
+  <!-- SCREEN 1: INTRO -->
+  <div class="screen active" id="screen1">
+    <div class="badge">
+      <span class="dot-pulse"></span> ONE MESSAGE
+    </div>
+    <h1 class="title">Hi Baby,</h1>
+    <p class="subtitle">Devaliant wants to tell you something.</p>
+    <button class="btn-pink" onclick="goToScreen(2)">What?</button>
+  </div>
+
+  <!-- SCREEN 2: CONSTELLATION STAR TRACING -->
+  <div class="screen" id="screen2">
+    <div class="stage-header" id="stageHeader">TRACE IT · 1 OF 3</div>
+    <div class="stage-dots">
+      <div class="stage-dot active" id="sdot1"></div>
+      <div class="stage-dot" id="sdot2"></div>
+      <div class="stage-dot" id="sdot3"></div>
+    </div>
+
+    <div class="star-canvas-container">
+      <canvas id="starCanvas" width="320" height="320"></canvas>
+    </div>
+
+    <div class="hint-text" id="hintText">Connect the stars, in order.<br>START AT THE ONE THAT'S GLOWING</div>
+  </div>
+
+  <!-- SCREEN 3: SCRATCH CARD -->
+  <div class="screen" id="screen3">
+    <div class="stage-header">SEALED</div>
+    <div class="scratch-container">
+      <div class="scratch-reveal-content">
+        <div class="dot-pulse" style="margin-bottom: 12px;"></div>
+        <h3>One question.<br>It has been waiting a while.</h3>
+        <p>OPENING</p>
+      </div>
+      <canvas id="scratchCanvas" width="310" height="200"></canvas>
+    </div>
+    <p class="hint-text">It was hidden on purpose.</p>
+  </div>
+
+  <!-- SCREEN 4: THE LETTER -->
+  <div class="screen" id="screen4">
+    <div class="stage-header">FOR BABY</div>
+    <div class="letter-container">
+      <div class="letter-body">
+        <p>Your heart felt message goes here</p>
+        <p>another paragraph goes here</p>
+        <p>sha tell her what will sweet her heart</p>
+        <p>So — no need for too much talk, and no hiding it inside a joke this time:</p>
       </div>
 
-      <div class="content">
-        <h1>Hi Baby,</h1>
+      <div class="question-prompt">Baby, will you be my girlfriend?</div>
 
-        <p class="message">
-          <span id="name">Devaliant</span> wants to tell you something.
-        </p>
-
-        <button id="whatBtn" type="button">
-          What?
-        </button>
-
-        <div class="reveal" id="reveal" aria-hidden="true">
-          <p class="heart">♥</p>
-          <p class="secret">
-            You mean more to me than words can explain.
-          </p>
-        </div>
+      <div class="letter-body">
+        <p>Take your time with it. I will be fine either way. But I would be lying if I said I wasn't hoping sha.</p>
       </div>
 
-      <div class="footer">
-        Made for one person
-      </div>
+      <div class="signature">— Devaliant</div>
 
-    </section>
-  </main>
+      <div class="choice-note">This page opens once. Whatever you choose, it stays chosen.</div>
+
+      <div class="button-group">
+        <button class="btn-pink" onclick="handleResponse('yes')">Yes</button>
+        <button class="btn-no" onclick="handleResponse('no')">No</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: FINAL SUCCESS (YES) -->
+  <div class="screen" id="screen5">
+    <h1 class="title" style="font-size: 56px; margin-bottom: 12px;">Yes.</h1>
+    <p class="subtitle" style="margin-bottom: 16px;">Baby. You have no idea what you just did to my week.</p>
+    <p class="hint-text" style="font-size: 20px; color: #ffb8c6; margin-bottom: 36px;">Now come and say it to my face.</p>
+    
+    <!-- WHATSAPP DIRECT LINK -->
+    <a id="whatsappBtn" class="btn-pink" href="https://wa.me/?text=Yes!%20%E2%9D%A4%EF%B8%8F" target="_blank">
+      Tell them yourself &rarr;
+    </a>
+
+    <div class="stage-header" style="margin-top: 48px;">SEALED · BABE & DEVALIANT</div>
+  </div>
 
   <script>
-    const button = document.getElementById("whatBtn");
-    const reveal = document.getElementById("reveal");
+    // === CONFIGURATION ===
+    // Enter your phone number below if you want WhatsApp to open a direct chat with you!
+    // Example: const myPhone = "2348012345678";
+    const myPhone = ""; 
+    const customMessage = encodeURIComponent("Yes! ❤️");
 
-    button.addEventListener("click", () => {
-      const open = reveal.classList.toggle("show");
-      reveal.setAttribute("aria-hidden", String(!open));
-      button.textContent = open ? "Aww ♥" : "What?";
+    if (myPhone) {
+      document.getElementById('whatsappBtn').href = `https://wa.me/${myPhone}?text=${customMessage}`;
+    } else {
+      document.getElementById('whatsappBtn').href = `https://wa.me/?text=${customMessage}`;
+    }
+
+    // Navigation Helper
+    function goToScreen(num) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById('screen' + num);
+      target.classList.add('active');
+
+      if (num === 2) initStarStage(0);
+      if (num === 3) initScratchCard();
+    }
+
+    // Floating Particles Background
+    const pCanvas = document.getElementById('particleCanvas');
+    const pCtx = pCanvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      pCanvas.width = window.innerWidth;
+      pCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    for (let i = 0; i < 40; i++) {
+      particles.push({
+        x: Math.random() * pCanvas.width,
+        y: Math.random() * pCanvas.height,
+        r: Math.random() * 1.5 + 0.5,
+        alpha: Math.random() * 0.5 + 0.2,
+        speed: Math.random() * 0.3 + 0.1
+      });
+    }
+
+    function animateParticles() {
+      pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+      particles.forEach(p => {
+        p.y -= p.speed;
+        if (p.y < 0) p.y = pCanvas.height;
+        pCtx.beginPath();
+        pCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        pCtx.fillStyle = `rgba(230, 57, 86, ${p.alpha})`;
+        pCtx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // === STAR TRACING CONSTELLATIONS ===
+    const sCanvas = document.getElementById('starCanvas');
+    const sCtx = sCanvas.getContext('2d');
+
+    const stages = [
+      {
+        header: "TRACE IT · 1 OF 3",
+        dots: [
+          { x: 50, y: 130 },
+          { x: 100, y: 190 },
+          { x: 150, y: 120 },
+          { x: 200, y: 195 },
+          { x: 260, y: 125 }
+        ],
+        hintEnd: "Some things you have to go looking for."
+      },
+      {
+        header: "TRACE IT · 2 OF 3",
+        dots: [
+          { x: 215, y: 105 },
+          { x: 160, y: 95 },
+          { x: 115, y: 110 },
+          { x: 90, y: 135 },
+          { x: 100, y: 165 },
+          { x: 145, y: 180 },
+          { x: 210, y: 185 }
+        ],
+        hintEnd: "Some take a while to see properly."
+      },
+      {
+        header: "TRACE IT · 3 OF 3",
+        dots: [
+          { x: 160, y: 120 },
+          { x: 130, y: 100 },
+          { x: 95, y: 115 },
+          { x: 80, y: 140 },
+          { x: 85, y: 165 },
+          { x: 125, y: 195 },
+          { x: 160, y: 225 },
+          { x: 195, y: 195 },
+          { x: 235, y: 165 },
+          { x: 240, y: 140 },
+          { x: 225, y: 115 },
+          { x: 190, y: 100 },
+          { x: 160, y: 120 }
+        ],
+        hintEnd: "And some are obvious, the moment you connect them."
+      }
+    ];
+
+    let currentStage = 0;
+    let connectedCount = 0;
+
+    function initStarStage(index) {
+      currentStage = index;
+      connectedCount = 0;
+      document.getElementById('stageHeader').innerText = stages[index].header;
+      
+      document.querySelectorAll('.stage-dot').forEach((d, i) => {
+        d.classList.toggle('active', i <= index);
+      });
+
+      document.getElementById('hintText').innerHTML = index === 0 
+        ? "Connect the stars, in order.<br>START AT THE ONE THAT'S GLOWING" 
+        : "the glowing one";
+
+      drawStars();
+    }
+
+    function drawStars() {
+      sCtx.clearRect(0, 0, sCanvas.width, sCanvas.height);
+      const stage = stages[currentStage];
+
+      // Draw Lines
+      if (connectedCount > 0) {
+        sCtx.beginPath();
+        sCtx.moveTo(stage.dots[0].x, stage.dots[0].y);
+        for (let i = 1; i <= connectedCount; i++) {
+          sCtx.lineTo(stage.dots[i].x, stage.dots[i].y);
+        }
+        sCtx.strokeStyle = "#e63956";
+        sCtx.lineWidth = 3;
+        sCtx.shadowColor = "#e63956";
+        sCtx.shadowBlur = 12;
+        sCtx.stroke();
+        sCtx.shadowBlur = 0;
+      }
+
+      // Draw Dots
+      stage.dots.forEach((dot, i) => {
+        sCtx.beginPath();
+        sCtx.arc(dot.x, dot.y, i <= connectedCount ? 7 : 5, 0, Math.PI * 2);
+        
+        if (i === connectedCount) {
+          // Glowing Next Dot
+          sCtx.fillStyle = "#e63956";
+          sCtx.shadowColor = "#e63956";
+          sCtx.shadowBlur = 15;
+          sCtx.fill();
+          sCtx.shadowBlur = 0;
+
+          // Outer Pulse Ring
+          sCtx.beginPath();
+          sCtx.arc(dot.x, dot.y, 12, 0, Math.PI * 2);
+          sCtx.strokeStyle = "rgba(230, 57, 86, 0.5)";
+          sCtx.lineWidth = 1.5;
+          sCtx.stroke();
+        } else if (i < connectedCount) {
+          sCtx.fillStyle = "#ffb8c6";
+          sCtx.fill();
+        } else {
+          sCtx.fillStyle = "#3a2a30";
+          sCtx.fill();
+        }
+      });
+    }
+
+    sCanvas.addEventListener('pointerdown', (e) => {
+      const rect = sCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const stage = stages[currentStage];
+      const targetDot = stage.dots[connectedCount + 1];
+
+      if (targetDot) {
+        const dist = Math.hypot(x - targetDot.x, y - targetDot.y);
+        if (dist < 25) {
+          connectedCount++;
+          drawStars();
+
+          if (connectedCount === stage.dots.length - 1) {
+            document.getElementById('hintText').innerText = stage.hintEnd;
+            setTimeout(() => {
+              if (currentStage < 2) {
+                initStarStage(currentStage + 1);
+              } else {
+                document.getElementById('hintText').innerText = "You earned it.";
+                setTimeout(() => goToScreen(3), 1200);
+              }
+            }, 1400);
+          }
+        }
+      }
     });
-  </script>
 
+    // === SCRATCH CARD ===
+    function initScratchCard() {
+      const c = document.getElementById('scratchCanvas');
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#6b1d2f';
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'italic 18px "Playfair Display", serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Scratch to unseal', c.width / 2, c.height / 2 - 5);
+
+      ctx.fillStyle = '#ffb8c6';
+      ctx.font = '10px "DM Sans", sans-serif';
+      ctx.fillText('USE YOUR FINGER', c.width / 2, c.height / 2 + 20);
+
+      let isDrawing = false;
+
+      function scratch(e) {
+        if (!isDrawing) return;
+        const rect = c.getBoundingClientRect();
+        const x = (e.clientX || e.touches[0].clientX) - rect.left;
+        const y = (e.clientY || e.touches[0].clientY) - rect.top;
+
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x, y, 22, 0, Math.PI * 2);
+        ctx.fill();
+
+        checkScratchProgress();
+      }
+
+      function checkScratchProgress() {
+        const imgData = ctx.getImageData(0, 0, c.width, c.height);
+        let clearPixels = 0;
+        for (let i = 3; i < imgData.data.length; i += 4) {
+          if (imgData.data[i] === 0) clearPixels++;
+        }
+        if (clearPixels / (c.width * c.height) > 0.45) {
+          c.style.transition = 'opacity 0.6s ease';
+          c.style.opacity = '0';
+          setTimeout(() => {
+            c.style.display = 'none';
+            setTimeout(() => goToScreen(4), 1500);
+          }, 600);
+        }
+      }
+
+      c.addEventListener('mousedown', () => isDrawing = true);
+      c.addEventListener('mouseup', () => isDrawing = false);
+      c.addEventListener('mousemove', scratch);
+
+      c.addEventListener('touchstart', () => isDrawing = true);
+      c.addEventListener('touchend', () => isDrawing = false);
+      c.addEventListener('touchmove', scratch);
+    }
+
+    // Response Handling & Celebration
+    function handleResponse(answer) {
+      if (answer === 'yes') {
+        goToScreen(5);
+        startConfetti();
+      } else {
+        alert("Nice try! 'Yes' is the only option ❤️");
+      }
+    }
+
+    // Confetti Animation
+    function startConfetti() {
+      const c = document.getElementById('confettiCanvas');
+      const ctx = c.getContext('2d');
+      c.width = window.innerWidth;
+      c.height = window.innerHeight;
+
+      const pieces = [];
+      for (let i = 0; i < 70; i++) {
+        pieces.push({
+          x: Math.random() * c.width,
+          y: Math.random() * c.height - c.height,
+          size: Math.random() * 10 + 5,
+          color: ['#e63956', '#ffb8c6', '#ffffff'][Math.floor(Math.random() * 3)],
+          speedY: Math.random() * 3 + 2,
+          speedX: Math.random() * 2 - 1
+        });
+      }
+
+      function render() {
+        ctx.clearRect(0, 0, c.width, c.height);
+        pieces.forEach(p => {
+          p.y += p.speedY;
+          p.x += p.speedX;
+          if (p.y > c.height) p.y = -10;
+          ctx.fillStyle = p.color;
+          ctx.fillRect(p.x, p.y, p.size, p.size);
+        });
+        requestAnimationFrame(render);
+      }
+      render();
+    }
+  </script>
 </body>
 </html>
